@@ -3,7 +3,8 @@ from sqlalchemy.orm.session import Session
 from api import schemas
 from api.dependencies.auth import get_current_user
 from api.dependencies.db import get_db
-from api.crud import ProspectCrud
+from api.crud import ProspectCrud, ImportCrud
+from api.models import Imports
 
 router = APIRouter(prefix="/api", tags=["imports"])
 
@@ -23,15 +24,10 @@ async def upload_prospect_file(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
-  
-    fileRead = file.file.read()
-    splitlines = fileRead.splitlines()
     
-    for index, l in enumerate(splitlines):
-        if index == 0 and has_headers == True:
-            pass
-        else:
-            split = l.split(b",")
-            ProspectCrud.create_prospect(db, current_user.id, {"email" : split[email_index].decode('utf-8'), "first_name": split[first_name_index].decode('utf-8'), "last_name" : split[last_name_index].decode('utf-8') })
+    fileRead = file.file.read()
+    metadata = { "email_index" : email_index, "first_name_index": first_name_index, "last_name_index": last_name_index, "force": force, "has_headers": has_headers}
+    
+    imports = await ImportCrud.process_csv_import(db, current_user, metadata, fileRead);
     '''Temporary return for testing'''
-    return {"status" : 1 } 
+    return {"status": imports.id}

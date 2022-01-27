@@ -26,4 +26,4 @@ class Imports(Base):
     email_index = Column(SmallInteger)
 
     def __repr__(self):
-        return f"{self.id} | {self.file_name}"
+        return f"{self.id} | {self.has_headers}"

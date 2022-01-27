@@ -54,3 +54,10 @@ class ProspectCrud:
             .all()
         )
         return {row.id for row in res}
+        
+        
+    @classmethod
+    def get_prospect_by_email(
+        cls, db: Session, user_id: int, email: str
+    ) -> Union[None, Prospect]:
+        return db.query(Prospect).filter(Prospect.email == email).one_or_none()
