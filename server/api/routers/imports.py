@@ -14,7 +14,6 @@ async def get_import_status(
             db: Session = Depends(get_db),
             current_user: schemas.User = Depends(get_current_user)
             ):
-            print(id)
             if not current_user:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
@@ -41,7 +40,13 @@ async def upload_prospect_file(
         )
     
     fileRead = file.file.read()
-    metadata = { "email_index" : email_index, "first_name_index": first_name_index, "last_name_index": last_name_index, "force": force, "has_headers": has_headers}
+    metadata = { 
+                    "email_index" : email_index, 
+                    "first_name_index": first_name_index, 
+                    "last_name_index": last_name_index, 
+                    "force": force, 
+                    "has_headers": has_headers
+                }
     
     imports = await ImportCrud.process_csv_import(db, current_user, metadata, fileRead);
     '''Temporary return for testing'''

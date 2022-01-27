@@ -49,26 +49,47 @@ class ImportCrud:
         info: schemas.Metadata,
         file: bytes,
         ) -> Imports:
-        splitlines = file.splitlines()
         
+        splitlines = file.splitlines()
+        #if has_headers is true, subtract 1 row from num lines
         if info['has_headers'] == True:
             size = len(splitlines) - 1
         else:
             size = len(splitlines)
             
-        imports = ImportCrud.add_import_metadata(db, {"has_headers": info['has_headers'], "force": info['force'], "last_name_index": info['last_name_index'], "first_name_index": info['first_name_index'], "email_index": info['email_index'], "total": size, "done": 0})
+        imports = ImportCrud.add_import_metadata(db, 
+                                                    {
+                                                        "has_headers": info['has_headers'], 
+                                                        "force": info['force'], 
+                                                        "last_name_index": info['last_name_index'], 
+                                                        "first_name_index": info['first_name_index'], 
+                                                        "email_index": info['email_index'], 
+                                                        "total": size, 
+                                                        "done": 0
+                                                    }
+                                                )
         db.refresh(imports)
-        print(ImportCrud.get_metadata_count(db)) #for debugging
-        
+
+        #go through file line by line, split on each line on comma
         for index, l in enumerate(splitlines):
             if index == 0 and info['has_headers'] == True:
                 pass
             else:
                 split = l.split(b",") 
+                
+                #Check to see if prospect exists
                 prospect = ProspectCrud.get_prospect_by_email(db, current_user.id, split[info['email_index']].decode('utf-8'));
+                
                 imports.done += 1
                 if prospect is None:
-                    ProspectCrud.create_prospect(db, current_user.id, {"email" : split[info['email_index']].decode('utf-8'), "first_name": split[info['first_name_index']].decode('utf-8'), "last_name" : split[info['last_name_index']].decode('utf-8') })
+                    ProspectCrud.create_prospect(db, 
+                                                current_user.id, 
+                                                    {
+                                                    "email" : split[info['email_index']].decode('utf-8'), 
+                                                    "first_name": split[info['first_name_index']].decode('utf-8'), 
+                                                    "last_name" : split[info['last_name_index']].decode('utf-8') 
+                                                    }
+                                                )
                 elif(info['force'] == True):
                     prospect.first_name = split[info['first_name_index']].decode('utf-8')
                     prospect.last_name = split[info['last_name_index']].decode('utf-8')
