@@ -24,6 +24,9 @@ class Imports(Base):
     last_name_index = Column(SmallInteger)
     first_name_index = Column(SmallInteger)
     email_index = Column(SmallInteger)
+    
+    total = Column(BigInteger)
+    done = Column(BigInteger)
 
     def __repr__(self):
-        return f"{self.id} | {self.has_headers}"
+        return f"{self.total} | {self.done}"

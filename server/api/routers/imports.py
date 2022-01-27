@@ -8,6 +8,21 @@ from api.models import Imports
 
 router = APIRouter(prefix="/api", tags=["imports"])
 
+@router.get("/prospects_files/{id}/progress", response_model=schemas.CSVTrackResponse)
+async def get_import_status(
+            id: int, 
+            db: Session = Depends(get_db),
+            current_user: schemas.User = Depends(get_current_user)
+            ):
+            print(id)
+            if not current_user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
+                )
+            
+            result = ImportCrud.get_process_count(current_user, db, id)
+            return {"total": result.total, "done": result.done}
+
 @router.post("/prospects_files/import", response_model=schemas.CSVUploadResponse)
 async def upload_prospect_file(
     email_index: int = Form(...),

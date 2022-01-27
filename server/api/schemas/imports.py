@@ -8,6 +8,10 @@ class CSVTrackResponse(BaseModel):
     total: int
     done: int
     
+    class Config:
+        orm_mode = True
+
+    
 class CSVImport(BaseModel):
     id: int
     size: int
