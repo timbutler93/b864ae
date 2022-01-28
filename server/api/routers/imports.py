@@ -19,7 +19,7 @@ async def get_import_status(
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
                 )
             
-            result = ImportCrud.get_process_count(current_user, db, id)
+            result = ImportCrud.get_process_count(db, id)
             return {"total": result.total, "done": result.done}
 
 @router.post("/prospects_files/import", response_model=schemas.CSVUploadResponse)
@@ -40,6 +40,7 @@ async def upload_prospect_file(
         )
     
     fileRead = file.file.read()
+ 
     metadata = { 
                     "email_index" : email_index, 
                     "first_name_index": first_name_index, 
@@ -47,7 +48,9 @@ async def upload_prospect_file(
                     "force": force, 
                     "has_headers": has_headers
                 }
-    
-    imports = await ImportCrud.process_csv_import(db, current_user, metadata, fileRead);
+    imports = ImportCrud.set_up_import(db, current_user, metadata, fileRead)
+    await ImportCrud.save_csv_file(db, imports, fileRead)
+    await ImportCrud.process_csv_import(db, current_user, metadata, fileRead, imports)
     '''Temporary return for testing'''
-    return {"status": imports.id}
+    print(imports.file_path)
+    return {"id": imports.id}

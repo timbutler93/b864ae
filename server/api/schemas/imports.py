@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class CSVUploadResponse(BaseModel):
-    status: int
+    id: int
 
 class CSVTrackResponse(BaseModel):
     total: int

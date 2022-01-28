@@ -5,7 +5,11 @@ from api.models import Imports
 from api.dependencies.auth import get_current_user
 from api.dependencies.db import get_db
 from api.crud import ProspectCrud
-from fastapi import HTTPException, status
+
+import random
+import string
+import os
+
 class ImportCrud:
     @classmethod
     def get_import_data(
@@ -33,7 +37,8 @@ class ImportCrud:
         db: Session,
         ) -> int:
         return db.query(Imports).count()
-    
+        
+    @classmethod
     def get_process_count(
         cls,
         db: Session,
@@ -42,14 +47,15 @@ class ImportCrud:
         result = db.query(Imports).filter(Imports.id == idPassed).one_or_none()
         if result is not None:
             return result
-
-    async def process_csv_import(
+            
+    @classmethod        
+    def set_up_import(
+        cls,
         db: Session,
         current_user: int,
         info: schemas.Metadata,
         file: bytes,
-        ) -> Imports:
-        
+    ) -> Imports:
         splitlines = file.splitlines()
         #if has_headers is true, subtract 1 row from num lines
         if info['has_headers'] == True:
@@ -69,6 +75,19 @@ class ImportCrud:
                                                     }
                                                 )
         db.refresh(imports)
+        return imports
+        
+    @classmethod
+    async def process_csv_import(
+        cls,
+        db: Session,
+        current_user: int,
+        info: schemas.Metadata,
+        file: bytes,
+        importObj: Imports,
+        ) -> Imports:
+        
+        splitlines = file.splitlines()
 
         #go through file line by line, split on each line on comma
         for index, l in enumerate(splitlines):
@@ -80,7 +99,7 @@ class ImportCrud:
                 #Check to see if prospect exists
                 prospect = ProspectCrud.get_prospect_by_email(db, current_user.id, split[info['email_index']].decode('utf-8'));
                 
-                imports.done += 1
+                importObj.done += 1
                 if prospect is None:
                     ProspectCrud.create_prospect(db, 
                                                 current_user.id, 
@@ -96,5 +115,20 @@ class ImportCrud:
                     
                 db.commit()
             
-        return imports
+        return importObj
         
+    @classmethod
+    async def save_csv_file(
+        cls,
+        db: Session,
+        imports: Imports,
+        file: bytes,
+        ) -> Imports:
+        randomStr = ''.join(random.choice(string.ascii_letters) for i in range(20))
+        imports.file_name = randomStr + ".csv"
+        imports.file_path = os.getcwd()
+        
+        with open(imports.file_name, 'w') as o:
+            o.write(file.decode('utf'))
+        o.close()    
+        print(randomStr)
