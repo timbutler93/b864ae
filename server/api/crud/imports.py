@@ -70,6 +70,7 @@ class ImportCrud:
                                                         "last_name_index": info['last_name_index'], 
                                                         "first_name_index": info['first_name_index'], 
                                                         "email_index": info['email_index'], 
+                                                        "file_size": info['file_size'],
                                                         "total": size, 
                                                         "done": 0
                                                     }
@@ -86,35 +87,34 @@ class ImportCrud:
         file: bytes,
         importObj: Imports,
         ) -> Imports:
-        
         splitlines = file.splitlines()
-
         #go through file line by line, split on each line on comma
         for index, l in enumerate(splitlines):
-            if index == 0 and info['has_headers'] == True:
+            if index == 0 and info['has_headers']:
                 pass
             else:
                 split = l.split(b",") 
-                
+                try: #try inside for loop to allow valid rows to be entered/updated
                 #Check to see if prospect exists
-                prospect = ProspectCrud.get_prospect_by_email(db, current_user.id, split[info['email_index']].decode('utf-8'));
-                
-                importObj.done += 1
-                if prospect is None:
-                    ProspectCrud.create_prospect(db, 
-                                                current_user.id, 
-                                                    {
-                                                    "email" : split[info['email_index']].decode('utf-8'), 
-                                                    "first_name": split[info['first_name_index']].decode('utf-8'), 
-                                                    "last_name" : split[info['last_name_index']].decode('utf-8') 
-                                                    }
-                                                )
-                elif(info['force'] == True):
-                    prospect.first_name = split[info['first_name_index']].decode('utf-8')
-                    prospect.last_name = split[info['last_name_index']].decode('utf-8')
+                    prospect = ProspectCrud.get_prospect_by_email(db, current_user.id, split[info['email_index']].decode('utf-8'));
                     
-                db.commit()
-            
+                    if prospect is None:
+                        ProspectCrud.create_prospect(db, 
+                                                    current_user.id, 
+                                                        {
+                                                        "email" : split[info['email_index']].decode('utf-8'), 
+                                                        "first_name": split[info['first_name_index']].decode('utf-8'), 
+                                                        "last_name" : split[info['last_name_index']].decode('utf-8') 
+                                                        }
+                                                    )
+                    elif(info['force']):
+                        prospect.first_name = split[info['first_name_index']].decode('utf-8')
+                        prospect.last_name = split[info['last_name_index']].decode('utf-8')
+                    importObj.done += 1    
+                    db.commit()
+                except IndexError:
+                    print('Index out of bounds')
+                    pass
         return importObj
         
     @classmethod
@@ -127,8 +127,8 @@ class ImportCrud:
         randomStr = ''.join(random.choice(string.ascii_letters) for i in range(20))
         imports.file_name = randomStr + ".csv"
         imports.file_path = os.getcwd()
-        
         with open(imports.file_name, 'w') as o:
             o.write(file.decode('utf'))
-        o.close()    
-        print(randomStr)
+        o.close()
+      
+        return imports

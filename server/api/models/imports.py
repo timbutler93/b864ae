@@ -12,10 +12,10 @@ class Imports(Base):
     __tablename__ = "imports"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    size = Column(BigInteger)
     file_name = Column(String)
     file_path = Column(String)
-    
+    file_size = Column(BigInteger)
+        
     date_uploaded = Column(DateTime(timezone=True), server_default=func.now())
     
     has_headers = Column(Boolean)

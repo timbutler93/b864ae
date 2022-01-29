@@ -8,8 +8,9 @@ def seed_data(db: Session):
     print("-- Seeding Data --")
     # Create user
     user1 = User(email="test@test.com", password_digest=get_password_hash("sample"))
+    user2 = User(email="test2@test.com", password_digest=get_password_hash("sample")) #to test force flag
     db.add(user1)
-
+    db.add(user2)
     for i in range(20):
         # Create campaigns for user
         campaign = Campaign(name=f"Campaign {i}", user=user1)

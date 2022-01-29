@@ -28,4 +28,4 @@ class Metadata(BaseModel):
     email_index: int
     first_name_index: int
     last_name_index: int
-    
+    file_size: int
