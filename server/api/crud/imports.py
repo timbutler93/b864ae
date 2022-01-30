@@ -61,8 +61,7 @@ class ImportCrud:
         if info['has_headers'] == True:
             size = len(splitlines) - 1
         else:
-            size = len(splitlines)
-            
+            size = len(splitlines)    
         imports = ImportCrud.add_import_metadata(db, 
                                                     {
                                                         "has_headers": info['has_headers'], 
@@ -72,7 +71,8 @@ class ImportCrud:
                                                         "email_index": info['email_index'], 
                                                         "file_size": info['file_size'],
                                                         "total": size, 
-                                                        "done": 0
+                                                        "done": 0,
+                                                        "user_id": current_user
                                                     }
                                                 )
         db.refresh(imports)
@@ -96,11 +96,11 @@ class ImportCrud:
                 split = l.split(b",") 
                 try: #try inside for loop to allow valid rows to be entered/updated
                 #Check to see if prospect exists
-                    prospect = ProspectCrud.get_prospect_by_email(db, current_user.id, split[info['email_index']].decode('utf-8'));
+                    prospect = ProspectCrud.get_prospect_by_email(db, current_user, split[info['email_index']].decode('utf-8'));
                     
                     if prospect is None:
                         ProspectCrud.create_prospect(db, 
-                                                    current_user.id, 
+                                                    current_user, 
                                                         {
                                                         "email" : split[info['email_index']].decode('utf-8'), 
                                                         "first_name": split[info['first_name_index']].decode('utf-8'), 

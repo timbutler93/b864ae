@@ -1,6 +1,6 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.functions import func
-from sqlalchemy.sql.schema import Column
+from sqlalchemy.sql.schema import Column, ForeignKey
 from sqlalchemy.sql.sqltypes import BigInteger, DateTime, String, Boolean, SmallInteger
 
 from api.database import Base
@@ -11,7 +11,7 @@ class Imports(Base):
 
     __tablename__ = "imports"
 
-    id = Column(BigInteger, primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
     file_name = Column(String)
     file_path = Column(String)
     file_size = Column(BigInteger)
@@ -27,6 +27,10 @@ class Imports(Base):
     
     total = Column(BigInteger)
     done = Column(BigInteger)
+
+    user_id = Column(BigInteger, ForeignKey("users.id"))
+
+    user = relationship("User", back_populates="imports", foreign_keys=[user_id])
 
     def __repr__(self):
         return f"{self.total} | {self.done}"

@@ -48,11 +48,12 @@ async def upload_prospect_file(
                     "last_name_index": last_name_index, 
                     "force": force, 
                     "has_headers": has_headers,
-                    "file_size": filesize
+                    "file_size": filesize,
+                    "user_id": current_user.id
                 }
-    imports = ImportCrud.set_up_import(db, current_user, metadata, fileRead)
+    imports = ImportCrud.set_up_import(db, current_user.id, metadata, fileRead)
     await ImportCrud.save_csv_file(db, imports, fileRead)
-    await ImportCrud.process_csv_import(db, current_user, metadata, fileRead, imports)
+    await ImportCrud.process_csv_import(db, current_user.id, metadata, fileRead, imports)
     '''Temporary return for testing'''
     print(imports.file_path)
     return {"id": imports.id}

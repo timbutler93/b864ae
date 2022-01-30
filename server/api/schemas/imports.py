@@ -21,6 +21,7 @@ class CSVImport(BaseModel):
     email_index: int
     first_name_index: int
     last_name_index: int
+    user_id: int
     
 class Metadata(BaseModel):
     has_headers: bool
@@ -29,3 +30,4 @@ class Metadata(BaseModel):
     first_name_index: int
     last_name_index: int
     file_size: int
+    user_id: int
