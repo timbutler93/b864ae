@@ -12,6 +12,7 @@ class Prospect(BaseModel):
     last_name: str
     created_at: datetime
     updated_at: datetime
+    import_id: int
 
     class Config:
         orm_mode = True
@@ -21,6 +22,7 @@ class ProspectCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
+    import_id: int
 
 
 class ProspectResponse(BaseModel):

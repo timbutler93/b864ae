@@ -31,6 +31,7 @@ class Imports(Base):
     user_id = Column(BigInteger, ForeignKey("users.id"))
 
     user = relationship("User", back_populates="imports", foreign_keys=[user_id])
+    prospects = relationship("Prospect", back_populates="imports")
 
     def __repr__(self):
         return f"{self.total} | {self.done}"

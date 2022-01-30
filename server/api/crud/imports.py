@@ -90,7 +90,7 @@ class ImportCrud:
                 split = l.split(b",") 
                 try: #try inside for loop to allow valid rows to be entered/updated
                 #Check to see if prospect exists
-                    prospect = ProspectCrud.get_prospect_by_email(db, current_user, split[info['email_index']].decode('utf-8'));
+                    prospect = ProspectCrud.get_prospect_by_email(db, current_user, split[info['email_index']].decode('utf-8'))
                     
                     if prospect is None:
                         ProspectCrud.create_prospect(db, 
@@ -98,13 +98,15 @@ class ImportCrud:
                                                         {
                                                         "email" : split[info['email_index']].decode('utf-8'), 
                                                         "first_name": split[info['first_name_index']].decode('utf-8'), 
-                                                        "last_name" : split[info['last_name_index']].decode('utf-8') 
+                                                        "last_name" : split[info['last_name_index']].decode('utf-8'),
+                                                        "import_id": importObj.id
                                                         }
                                                     )
                     elif(info['force']):
                         prospect.first_name = split[info['first_name_index']].decode('utf-8')
                         prospect.last_name = split[info['last_name_index']].decode('utf-8')
-                    importObj.done += 1    
+                    importObj.done += 1
+                    
                     db.commit()
                 except IndexError:
                     print('Index out of bounds')
