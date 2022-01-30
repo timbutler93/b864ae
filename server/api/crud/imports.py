@@ -43,7 +43,7 @@ class ImportCrud:
         cls,
         db: Session,
         idPassed: int
-        ) -> Union[dict, None]:
+        ) -> Union[Imports, None]:
         result = db.query(Imports).filter(Imports.id == idPassed).one_or_none()
         if result is not None:
             return result
@@ -103,8 +103,10 @@ class ImportCrud:
                                                         }
                                                     )
                     elif(info['force']):
+                        #update prospect with new info, including import id
                         prospect.first_name = split[info['first_name_index']].decode('utf-8')
                         prospect.last_name = split[info['last_name_index']].decode('utf-8')
+                        prospect.import_id = importObj.id
                     importObj.done += 1
                     
                     db.commit()

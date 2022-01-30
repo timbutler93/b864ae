@@ -20,6 +20,13 @@ async def get_import_status(
                 )
             
             result = ImportCrud.get_process_count(db, id)
+            
+            if current_user.id != result.user_id:
+                raise HTTPException(
+                    status.HTTP_403_FORBIDDEN,
+                    detail=f"You do not have access to that import's status",
+                )
+            
             return {"total": result.total, "done": result.done}
 
 @router.post("/prospects_files/import", response_model=schemas.CSVUploadResponse)
@@ -39,7 +46,7 @@ async def upload_prospect_file(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
         
-    filesize = os.fstat(file.file.fileno()).st_size
+    filesize = os.fstat(file.file.fileno()).st_size #get file size
     fileRead = file.file.read()
     splitlines = fileRead.splitlines()
     #if has_headers is true, subtract 1 row from num lines
@@ -60,5 +67,5 @@ async def upload_prospect_file(
     imports = ImportCrud.set_up_import(db, current_user.id, metadata, size)
     await ImportCrud.save_csv_file(db, imports, fileRead)
     await ImportCrud.process_csv_import(db, current_user.id, metadata, splitlines, imports)
-
+    
     return {"id": imports.id}
