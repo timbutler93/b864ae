@@ -54,14 +54,9 @@ class ImportCrud:
         db: Session,
         current_user: int,
         info: schemas.Metadata,
-        file: bytes,
+        line_num: int,
     ) -> Imports:
-        splitlines = file.splitlines()
-        #if has_headers is true, subtract 1 row from num lines
-        if info['has_headers'] == True:
-            size = len(splitlines) - 1
-        else:
-            size = len(splitlines)    
+          
         imports = ImportCrud.add_import_metadata(db, 
                                                     {
                                                         "has_headers": info['has_headers'], 
@@ -70,7 +65,7 @@ class ImportCrud:
                                                         "first_name_index": info['first_name_index'], 
                                                         "email_index": info['email_index'], 
                                                         "file_size": info['file_size'],
-                                                        "total": size, 
+                                                        "total": line_num, 
                                                         "done": 0,
                                                         "user_id": current_user
                                                     }
@@ -84,10 +79,9 @@ class ImportCrud:
         db: Session,
         current_user: int,
         info: schemas.Metadata,
-        file: bytes,
+        splitlines: list,
         importObj: Imports,
-        ) -> Imports:
-        splitlines = file.splitlines()
+        ):
         #go through file line by line, split on each line on comma
         for index, l in enumerate(splitlines):
             if index == 0 and info['has_headers']:
@@ -115,7 +109,6 @@ class ImportCrud:
                 except IndexError:
                     print('Index out of bounds')
                     pass
-        return importObj
         
     @classmethod
     async def save_csv_file(
@@ -123,12 +116,10 @@ class ImportCrud:
         db: Session,
         imports: Imports,
         file: bytes,
-        ) -> Imports:
+        ):
         randomStr = ''.join(random.choice(string.ascii_letters) for i in range(20))
         imports.file_name = randomStr + ".csv"
         imports.file_path = os.getcwd()
         with open(imports.file_name, 'w') as o:
             o.write(file.decode('utf'))
         o.close()
-      
-        return imports

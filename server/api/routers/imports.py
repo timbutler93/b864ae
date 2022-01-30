@@ -41,7 +41,13 @@ async def upload_prospect_file(
         
     filesize = os.fstat(file.file.fileno()).st_size
     fileRead = file.file.read()
- 
+    splitlines = fileRead.splitlines()
+    #if has_headers is true, subtract 1 row from num lines
+    if has_headers:
+        size = len(splitlines) - 1
+    else:
+        size = len(splitlines)  
+            
     metadata = { 
                     "email_index" : email_index, 
                     "first_name_index": first_name_index, 
@@ -51,9 +57,8 @@ async def upload_prospect_file(
                     "file_size": filesize,
                     "user_id": current_user.id
                 }
-    imports = ImportCrud.set_up_import(db, current_user.id, metadata, fileRead)
+    imports = ImportCrud.set_up_import(db, current_user.id, metadata, size)
     await ImportCrud.save_csv_file(db, imports, fileRead)
-    await ImportCrud.process_csv_import(db, current_user.id, metadata, fileRead, imports)
-    '''Temporary return for testing'''
-    print(imports.file_path)
+    await ImportCrud.process_csv_import(db, current_user.id, metadata, splitlines, imports)
+
     return {"id": imports.id}
