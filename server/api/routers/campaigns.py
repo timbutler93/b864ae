@@ -51,7 +51,7 @@ def search_campaigns(
 )
 def add_prospects_to_campaign(
     data: schemas.AddToCampaigns,
-    campaign_id: int,
+    campaign_id: str,
     current_user: schemas.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
