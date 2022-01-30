@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 class CSVUploadResponse(BaseModel):
     id: int
@@ -16,18 +17,16 @@ class CSVImport(BaseModel):
     id: int
     size: int
     date_uploaded: datetime
-    has_header: bool
-    force: bool
+    has_headers: Optional[bool] = False
+    force: Optional[bool] = False
     email_index: int
-    first_name_index: int
-    last_name_index: int
+    first_name_index: Optional[int] = None
+    last_name_index: Optional[int] = None
     user_id: int
     
 class Metadata(BaseModel):
-    has_headers: bool
-    force: bool
+    has_headers: Optional[bool] = False
+    force: Optional[bool] = False
     email_index: int
-    first_name_index: int
-    last_name_index: int
-    file_size: int
-    user_id: int
+    first_name_index: Optional[int] = None
+    last_name_index: Optional[int] = None

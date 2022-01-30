@@ -13,8 +13,8 @@ class Prospect(Base):
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, unique=True)
     email = Column(String, primary_key=True, nullable=False)
-    first_name = Column(String, index=True, nullable=False)
-    last_name = Column(String, index=True, nullable=False)
+    first_name = Column(String, index=True, nullable=True)
+    last_name = Column(String, index=True, nullable=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), primary_key=True)
     import_id = Column(BigInteger, ForeignKey("imports.id"))
 

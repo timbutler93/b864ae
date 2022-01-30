@@ -2,13 +2,12 @@ from typing import Union
 from sqlalchemy.orm.session import Session
 from api import schemas
 from api.models import Imports
-from api.dependencies.auth import get_current_user
-from api.dependencies.db import get_db
 from api.crud import ProspectCrud
+from sqlalchemy.sql.functions import func
 
-import random
-import string
-import os
+from random import choice
+from string import ascii_letters
+from os import getcwd, path, makedirs
 
 class ImportCrud:
     @classmethod
@@ -93,25 +92,32 @@ class ImportCrud:
                     prospect = ProspectCrud.get_prospect_by_email(db, current_user, split[info['email_index']].decode('utf-8'))
                     
                     if prospect is None:
+                        data = {}
+                        if not importObj.first_name_index:
+                            data['first_name'] = None
+                        else:
+                            data['first_name'] = split[info['first_name_index']].decode('utf-8')
+                        
+                        if not importObj.last_name_index:
+                            data['last_name'] = None
+                        else:
+                            data['last_name'] = split[info['last_name_index']].decode('utf-8')                        
+                        data['email'] = split[info['email_index']].decode('utf-8')
+                        data['import_id'] = importObj.id
                         ProspectCrud.create_prospect(db, 
                                                     current_user, 
-                                                        {
-                                                        "email" : split[info['email_index']].decode('utf-8'), 
-                                                        "first_name": split[info['first_name_index']].decode('utf-8'), 
-                                                        "last_name" : split[info['last_name_index']].decode('utf-8'),
-                                                        "import_id": importObj.id
-                                                        }
+                                                        data
                                                     )
                     elif(info['force']):
                         #update prospect with new info, including import id
                         prospect.first_name = split[info['first_name_index']].decode('utf-8')
                         prospect.last_name = split[info['last_name_index']].decode('utf-8')
                         prospect.import_id = importObj.id
+                        prospect.updated_at = func.now()
                     importObj.done += 1
                     
                     db.commit()
                 except IndexError:
-                    print('Index out of bounds')
                     pass
         
     @classmethod
@@ -121,9 +127,13 @@ class ImportCrud:
         imports: Imports,
         file: bytes,
         ):
-        randomStr = ''.join(random.choice(string.ascii_letters) for i in range(20))
+        randomStr = ''.join(choice(ascii_letters) for i in range(20))
         imports.file_name = randomStr + ".csv"
-        imports.file_path = os.getcwd()
-        with open(imports.file_name, 'w') as o:
+        imports.file_path = getcwd() + "/CSV"
+        
+        if not path.exists(imports.file_path):
+            makedirs(imports.file_path)
+        
+        with open(imports.file_path + "/" + imports.file_name, 'w') as o:
             o.write(file.decode('utf'))
         o.close()

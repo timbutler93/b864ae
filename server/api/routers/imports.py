@@ -3,9 +3,10 @@ from sqlalchemy.orm.session import Session
 from api import schemas
 from api.dependencies.auth import get_current_user
 from api.dependencies.db import get_db
-from api.crud import ProspectCrud, ImportCrud
+from api.crud import ImportCrud
 from api.models import Imports
-import os
+from os import fstat
+from typing import Optional
 router = APIRouter(prefix="/api", tags=["imports"])
 
 @router.get("/prospects_files/{id}/progress", response_model=schemas.CSVTrackResponse)
@@ -20,7 +21,11 @@ async def get_import_status(
                 )
             
             result = ImportCrud.get_process_count(db, id)
-            
+            if not result:
+                raise HTTPException(
+                    status.HTTP_404_NOT_FOUND,
+                    detail=f"Import with id {id} does not exist",
+                )
             if current_user.id != result.user_id:
                 raise HTTPException(
                     status.HTTP_403_FORBIDDEN,
@@ -31,12 +36,12 @@ async def get_import_status(
 
 @router.post("/prospects_files/import", response_model=schemas.CSVUploadResponse)
 async def upload_prospect_file(
-    email_index: int = Form(...),
-    first_name_index: int = Form(...),
-    last_name_index: int = Form(...),
-    force: bool = Form(...),
-    has_headers: bool = Form(...),
     file: UploadFile = File(...),
+    email_index: int = Form(...),
+    first_name_index: Optional[int] = Form(None),
+    last_name_index: Optional[int] = Form(None),
+    force: Optional[bool] = Form(False),
+    has_headers: Optional[bool] = Form(False),
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(get_current_user),
 ):
@@ -46,9 +51,10 @@ async def upload_prospect_file(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
         
-    filesize = os.fstat(file.file.fileno()).st_size #get file size
+    filesize = fstat(file.file.fileno()).st_size #get file size
     fileRead = file.file.read()
     splitlines = fileRead.splitlines()
+    
     #if has_headers is true, subtract 1 row from num lines
     if has_headers:
         size = len(splitlines) - 1

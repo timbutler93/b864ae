@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from pydantic.networks import EmailStr
@@ -8,8 +8,8 @@ from pydantic.networks import EmailStr
 class Prospect(BaseModel):
     id: int
     email: EmailStr
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     import_id: int
