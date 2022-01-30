@@ -29,13 +29,6 @@ class ImportCrud:
         db.commit()
         db.refresh(imports)
         return imports
-    
-    @classmethod
-    def get_metadata_count(
-        cls,
-        db: Session,
-        ) -> int:
-        return db.query(Imports).count()
         
     @classmethod
     def get_process_count(
@@ -135,5 +128,5 @@ class ImportCrud:
             makedirs(imports.file_path)
         
         with open(imports.file_path + "/" + imports.file_name, 'w') as o:
-            o.write(file.decode('utf'))
+            o.write(file.decode('utf-8'))
         o.close()
