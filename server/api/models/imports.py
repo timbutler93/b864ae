@@ -15,16 +15,16 @@ class Imports(Base):
     file_name = Column(String)
     file_path = Column(String)
     file_size = Column(BigInteger)
-        
+
     date_uploaded = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     has_headers = Column(Boolean)
     force = Column(Boolean)
-    
+
     last_name_index = Column(SmallInteger)
     first_name_index = Column(SmallInteger)
     email_index = Column(SmallInteger)
-    
+
     total = Column(BigInteger)
     done = Column(BigInteger)
 

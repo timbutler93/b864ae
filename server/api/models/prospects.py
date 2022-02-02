@@ -19,7 +19,9 @@ class Prospect(Base):
     import_id = Column(BigInteger, ForeignKey("imports.id"))
 
     user = relationship("User", back_populates="prospects", foreign_keys=[user_id])
-    imports = relationship("Imports", back_populates="prospects", foreign_keys=[import_id])
+    imports = relationship(
+        "Imports", back_populates="prospects", foreign_keys=[import_id]
+    )
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now())

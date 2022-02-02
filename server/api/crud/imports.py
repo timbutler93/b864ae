@@ -9,38 +9,31 @@ from random import choice
 from string import ascii_letters
 from os import getcwd, path, makedirs
 
+
 class ImportCrud:
     @classmethod
     def get_import_data(
-        cls, 
-        db: Session, 
-        importID: int,
-        ) -> Union[Imports, None]:
-        return db.query(Imports).filter(Imports.id == importID).one_or_none()
-        
-    @classmethod
-    def add_import_metadata(
         cls,
         db: Session,
-        data: schemas.CSVImport
-        ) -> Imports:
+        import_id: int,
+    ) -> Union[Imports, None]:
+        return db.query(Imports).filter(Imports.id == import_id).one_or_none()
+
+    @classmethod
+    def add_import_metadata(cls, db: Session, data: schemas.CSVImport) -> Imports:
         imports = Imports(**data)
         db.add(imports)
         db.commit()
         db.refresh(imports)
         return imports
-        
+
     @classmethod
-    def get_process_count(
-        cls,
-        db: Session,
-        idPassed: int
-        ) -> Union[Imports, None]:
-        result = db.query(Imports).filter(Imports.id == idPassed).one_or_none()
+    def get_process_count(cls, db: Session, id_passed: int) -> Union[Imports, None]:
+        result = db.query(Imports).filter(Imports.id == id_passed).one_or_none()
         if result is not None:
             return result
-            
-    @classmethod        
+
+    @classmethod
     def set_up_import(
         cls,
         db: Session,
@@ -48,85 +41,93 @@ class ImportCrud:
         info: schemas.Metadata,
         line_num: int,
     ) -> Imports:
-          
-        imports = ImportCrud.add_import_metadata(db, 
-                                                    {
-                                                        "has_headers": info['has_headers'], 
-                                                        "force": info['force'], 
-                                                        "last_name_index": info['last_name_index'], 
-                                                        "first_name_index": info['first_name_index'], 
-                                                        "email_index": info['email_index'], 
-                                                        "file_size": info['file_size'],
-                                                        "total": line_num, 
-                                                        "done": 0,
-                                                        "user_id": current_user
-                                                    }
-                                                )
+
+        imports = ImportCrud.add_import_metadata(
+            db,
+            {
+                "has_headers": info["has_headers"],
+                "force": info["force"],
+                "last_name_index": info["last_name_index"],
+                "first_name_index": info["first_name_index"],
+                "email_index": info["email_index"],
+                "file_size": info["file_size"],
+                "total": line_num,
+                "done": 0,
+                "user_id": current_user,
+            },
+        )
         db.refresh(imports)
         return imports
-        
+
     @classmethod
     async def process_csv_import(
         cls,
         db: Session,
         current_user: int,
         info: schemas.Metadata,
-        splitlines: list,
-        importObj: Imports,
-        ):
-        #go through file line by line, split on each line on comma
-        for index, l in enumerate(splitlines):
-            if index == 0 and info['has_headers']:
+        split_lines: list,
+        import_obj: Imports,
+    ):
+        # go through file line by line, split on each line on comma
+        for index, l in enumerate(split_lines):
+            if index == 0 and info["has_headers"]:
                 pass
             else:
-                split = l.split(b",") 
-                try: #try inside for loop to allow valid rows to be entered/updated
-                #Check to see if prospect exists
-                    prospect = ProspectCrud.get_prospect_by_email(db, current_user, split[info['email_index']].decode('utf-8'))
-                    
+                split = l.split(b",")
+                try:  # try inside for loop to allow valid rows to be entered/updated
+                    # Check to see if prospect exists
+                    prospect = ProspectCrud.get_prospect_by_email(
+                        db, current_user, split[info["email_index"]].decode("utf-8")
+                    )
+
                     if prospect is None:
                         data = {}
-                        if not importObj.first_name_index:
-                            data['first_name'] = None
+                        if not import_obj.first_name_index:
+                            data["first_name"] = None
                         else:
-                            data['first_name'] = split[info['first_name_index']].decode('utf-8')
-                        
-                        if not importObj.last_name_index:
-                            data['last_name'] = None
+                            data["first_name"] = split[info["first_name_index"]].decode(
+                                "utf-8"
+                            )
+
+                        if not import_obj.last_name_index:
+                            data["last_name"] = None
                         else:
-                            data['last_name'] = split[info['last_name_index']].decode('utf-8')                        
-                        data['email'] = split[info['email_index']].decode('utf-8')
-                        data['import_id'] = importObj.id
-                        ProspectCrud.create_prospect(db, 
-                                                    current_user, 
-                                                        data
-                                                    )
-                    elif(info['force']):
-                        #update prospect with new info, including import id
-                        prospect.first_name = split[info['first_name_index']].decode('utf-8')
-                        prospect.last_name = split[info['last_name_index']].decode('utf-8')
-                        prospect.import_id = importObj.id
+                            data["last_name"] = split[info["last_name_index"]].decode(
+                                "utf-8"
+                            )
+                        data["email"] = split[info["email_index"]].decode("utf-8")
+                        data["import_id"] = import_obj.id
+                        ProspectCrud.create_prospect(db, current_user, data)
+                    elif info["force"]:
+                        # update prospect with new info, including import id
+                        prospect.first_name = split[info["first_name_index"]].decode(
+                            "utf-8"
+                        )
+                        prospect.last_name = split[info["last_name_index"]].decode(
+                            "utf-8"
+                        )
+                        prospect.import_id = import_obj.id
                         prospect.updated_at = func.now()
-                    importObj.done += 1
-                    
+                    import_obj.done += 1
+
                     db.commit()
                 except IndexError:
                     pass
-        
+
     @classmethod
     async def save_csv_file(
         cls,
         db: Session,
         imports: Imports,
         file: bytes,
-        ):
-        randomStr = ''.join(choice(ascii_letters) for i in range(20))
-        imports.file_name = randomStr + ".csv"
+    ):
+        random_str = "".join(choice(ascii_letters) for i in range(20))
+        imports.file_name = random_str + ".csv"
         imports.file_path = getcwd() + "/CSV"
-        
+
         if not path.exists(imports.file_path):
             makedirs(imports.file_path)
-        
-        with open(imports.file_path + "/" + imports.file_name, 'w') as o:
-            o.write(file.decode('utf-8'))
+
+        with open(imports.file_path + "/" + imports.file_name, "w") as o:
+            o.write(file.decode("utf-8"))
         o.close()

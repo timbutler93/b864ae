@@ -9,7 +9,7 @@ def seed_data(db: Session):
     # Create user
     user1 = User(email="test@test.com", password_digest=get_password_hash("sample"))
     db.add(user1)
-    
+
     for i in range(20):
         # Create campaigns for user
         campaign = Campaign(name=f"Campaign {i}", user=user1)
