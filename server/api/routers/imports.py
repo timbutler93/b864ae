@@ -34,7 +34,7 @@ async def get_import_status(
             detail=f"You do not have access to that import's status",
         )
 
-    return {"total": result.total, "done": result.done}
+    return {"total": result.total, "done": ImportCrud.get_prospect_count(db, id)}
 
 
 @router.post("/prospects_files/import", response_model=schemas.CSVUploadResponse)

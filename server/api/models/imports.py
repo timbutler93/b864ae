@@ -26,7 +26,6 @@ class Imports(Base):
     email_index = Column(SmallInteger)
 
     total = Column(BigInteger)
-    done = Column(BigInteger)
 
     user_id = Column(BigInteger, ForeignKey("users.id"))
 

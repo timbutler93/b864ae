@@ -1,7 +1,7 @@
 from typing import Union
 from sqlalchemy.orm.session import Session
 from api import schemas
-from api.models import Imports
+from api.models import Imports, Prospect
 from api.crud import ProspectCrud
 from sqlalchemy.sql.functions import func
 
@@ -34,6 +34,14 @@ class ImportCrud:
             return result
 
     @classmethod
+    def get_prospect_count(
+        cls,
+        db: Session,
+        import_id: int,
+    ) -> int:
+        return db.query(Prospect).filter(Prospect.import_id == import_id).count()
+
+    @classmethod
     def set_up_import(
         cls,
         db: Session,
@@ -52,7 +60,6 @@ class ImportCrud:
                 "email_index": info["email_index"],
                 "file_size": info["file_size"],
                 "total": line_num,
-                "done": 0,
                 "user_id": current_user,
             },
         )
@@ -108,9 +115,7 @@ class ImportCrud:
                         )
                         prospect.import_id = import_obj.id
                         prospect.updated_at = func.now()
-                    import_obj.done += 1
 
-                    db.commit()
                 except IndexError:
                     pass
 
