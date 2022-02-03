@@ -10,6 +10,7 @@ from string import ascii_letters
 from os import getcwd, path, makedirs
 from email_validator import validate_email, EmailNotValidError
 
+
 class ImportCrud:
     @classmethod
     def get_import_data(
@@ -81,9 +82,11 @@ class ImportCrud:
                 pass
             else:
                 split = l.split(b",")
-                try:# try inside for loop to allow valid rows to be entered/updated
+                try:  # try inside for loop to allow valid rows to be entered/updated
                     # Check to see if prospect exists after checking if email field is valid
-                    email_valid = validate_email(split[info["email_index"]].decode("utf-8"))
+                    email_valid = validate_email(
+                        split[info["email_index"]].decode("utf-8")
+                    )
                     prospect = ProspectCrud.get_prospect_by_email(
                         db, current_user, email_valid.ascii_email
                     )
@@ -117,7 +120,7 @@ class ImportCrud:
                         prospect.import_id = import_obj.id
                         prospect.updated_at = func.now()
                         db.commit()
-                        
+
                 except IndexError:
                     pass
                 except EmailNotValidError:
