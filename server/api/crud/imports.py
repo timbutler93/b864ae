@@ -116,7 +116,8 @@ class ImportCrud:
                         )
                         prospect.import_id = import_obj.id
                         prospect.updated_at = func.now()
-
+                        db.commit()
+                        
                 except IndexError:
                     pass
                 except EmailNotValidError:
