@@ -8,7 +8,7 @@ from sqlalchemy.sql.functions import func
 from random import choice
 from string import ascii_letters
 from os import getcwd, path, makedirs
-
+from email_validator import validate_email, EmailNotValidError
 
 class ImportCrud:
     @classmethod
@@ -81,10 +81,11 @@ class ImportCrud:
                 pass
             else:
                 split = l.split(b",")
-                try:  # try inside for loop to allow valid rows to be entered/updated
-                    # Check to see if prospect exists
+                try:# try inside for loop to allow valid rows to be entered/updated
+                    # Check to see if prospect exists after checking if email field is valid
+                    email_valid = validate_email(split[info["email_index"]].decode("utf-8"))
                     prospect = ProspectCrud.get_prospect_by_email(
-                        db, current_user, split[info["email_index"]].decode("utf-8")
+                        db, current_user, email_valid.ascii_email
                     )
 
                     if prospect is None:
@@ -102,7 +103,7 @@ class ImportCrud:
                             data["last_name"] = split[info["last_name_index"]].decode(
                                 "utf-8"
                             )
-                        data["email"] = split[info["email_index"]].decode("utf-8")
+                        data["email"] = email_valid.ascii_email
                         data["import_id"] = import_obj.id
                         ProspectCrud.create_prospect(db, current_user, data)
                     elif info["force"]:
@@ -117,6 +118,8 @@ class ImportCrud:
                         prospect.updated_at = func.now()
 
                 except IndexError:
+                    pass
+                except EmailNotValidError:
                     pass
 
     @classmethod
