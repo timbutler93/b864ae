@@ -5,6 +5,7 @@ from api.dependencies.auth import get_current_user
 from api.dependencies.db import get_db
 from api.crud import ImportCrud
 from api.models import Imports
+from api.core.constants import MAX_FILE_SIZE, MAX_FILE_NUM_LINE
 from os import fstat
 from typing import Optional
 
@@ -63,6 +64,16 @@ async def upload_prospect_file(
         size = len(split_lines) - 1
     else:
         size = len(split_lines)
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File size exceeds the limit of {MAX_FILE_SIZE} bytes!",
+        )
+    if size > MAX_FILE_NUM_LINE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Number of entries exceeds the limit of {MAX_FILE_NUM_LINE}!",
+        )
 
     metadata = {
         "email_index": email_index,
