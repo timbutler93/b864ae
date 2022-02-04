@@ -1,7 +1,7 @@
 from sqlalchemy.orm.session import Session
 from api.dependencies.db import get_db
 from api.core.security import get_password_hash
-from api.models import User, Prospect, Campaign, CampaignProspect
+from api.models import User, Prospect, Campaign, CampaignProspect, Imports
 
 
 def seed_data(db: Session):
@@ -9,7 +9,8 @@ def seed_data(db: Session):
     # Create user
     user1 = User(email="test@test.com", password_digest=get_password_hash("sample"))
     db.add(user1)
-
+    imports = Imports(id=0, user_id=user1.id)
+    db.add(imports)
     for i in range(20):
         # Create campaigns for user
         campaign = Campaign(name=f"Campaign {i}", user=user1)
@@ -21,6 +22,7 @@ def seed_data(db: Session):
                 user=user1,
                 first_name=f"John {i}{j}",
                 last_name="D.",
+                import_id=0,
             )
             db.add(prospect)
             # Link the prospects to a campaign
