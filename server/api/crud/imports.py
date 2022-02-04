@@ -142,4 +142,3 @@ class ImportCrud:
 
         with open(imports.file_path + "/" + imports.file_name, "w") as o:
             o.write(file.decode("utf-8"))
-        o.close()
